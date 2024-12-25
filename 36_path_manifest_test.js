@@ -59,7 +59,7 @@ async function testPathManifest() {
         await arweave.transactions.post(manifestTx);
 
         console.log('\nManifest yüklendi:', manifestTx.id);
-        console.log('URL:', `http://thebigfile.info:1984/${manifestTx.id}`);
+        console.log('URL:', `https://thebigfile.info:1984/${manifestTx.id}`);
         
     } catch (error) {
         console.error('\nHata:', error);

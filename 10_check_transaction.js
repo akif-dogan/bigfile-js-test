@@ -59,7 +59,7 @@ async function checkTransaction(txId) {
             // Erişim URL'i
             console.log('\nVeri Erişim:');
             console.log('------------------------');
-            console.log('URL:', `http://thebigfile.info:1984/${txId}`);
+            console.log('URL:', `https://thebigfile.info:1984/${txId}`);
             
         } catch (txError) {
             console.log('\nİşlem detayları henüz hazır değil');
@@ -72,5 +72,5 @@ async function checkTransaction(txId) {
 }
 
 // Son işlem ID'sini buraya yapıştırın
-const txId = 'nm4pRrn-JDX2h2OWF19pEw6_z2koWz7A3_YO8UAatjw';
+const txId = 'FaiGT0SW53EhEbzhgOi5LTAphHh1uAu2nUu8mdjvmhs';
 checkTransaction(txId); 

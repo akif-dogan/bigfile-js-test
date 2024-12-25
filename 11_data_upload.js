@@ -30,7 +30,7 @@ async function uploadData() {
         }, wallet);
         
         // Tag'leri ekle
-        transaction.addTag('Network', 'bigfile.localnet');
+        transaction.addTag('Network', 'BigFile.V1');
         transaction.addTag('Content-Type', 'application/json');
         transaction.addTag('App-Name', 'BigFileTest');
         transaction.addTag('Type', 'Data');
@@ -72,7 +72,7 @@ async function uploadData() {
         if (uploadResponse.status === 200) {
             console.log('\nVeri Erişim:');
             console.log('------------------------');
-            console.log('URL:', `http://thebigfile.info:1984/${transaction.id}`);
+            console.log('URL:', `https://thebigfile.info:1984/${transaction.id}`);
             console.log('\nVeri doğrulamak için:');
             console.log('------------------------');
             console.log('npm run check-tx-status # İşlem ID:', transaction.id);

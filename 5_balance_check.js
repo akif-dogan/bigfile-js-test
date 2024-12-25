@@ -3,29 +3,42 @@ const fs = require('fs');
 
 async function checkBalance() {
     try {
-        // Cüzdan bilgilerini oku
         const wallet = JSON.parse(fs.readFileSync('wallet.json'));
-        
-        // Cüzdan adresini al
         const address = await arweave.wallets.jwkToAddress(wallet);
-        console.log('Cüzdan Adresi:', address);
         
-        // Bakiyeyi kontrol et
+        console.log('\nCüzdan Bilgileri:');
+        console.log('------------------------');
+        console.log('Adres:', address);
+        
+        // Bakiye kontrolü
         const balance = await arweave.wallets.getBalance(address);
-        console.log('Ham Bakiye (winston):', balance);
-        console.log('Bakiye (AR):', arweave.ar.winstonToAr(balance));
+        console.log('Bakiye:', arweave.ar.winstonToAr(balance), 'AR');
         
         // Son işlemleri kontrol et
-        const transactions = await arweave.arql({
-            op: "equals",
-            expr1: "from",
-            expr2: address
-        });
-        
-        console.log('Son İşlemler:', transactions);
+        try {
+            const query = {
+                op: 'and',
+                expr1: {
+                    op: 'equals',
+                    expr1: 'from',
+                    expr2: address
+                },
+                expr2: {
+                    op: 'equals',
+                    expr1: 'Network',
+                    expr2: 'BigFile.V1'
+                }
+            };
+            
+            const txs = await arweave.arql(query);
+            console.log('\nSon İşlemler:', txs.length ? txs : 'İşlem bulunamadı');
+            
+        } catch (err) {
+            console.log('\nİşlem sorgusu başarısız:', err.message);
+        }
         
     } catch (error) {
-        console.error('Bakiye kontrol hatası:', error);
+        console.error('\nHata:', error);
     }
 }
 

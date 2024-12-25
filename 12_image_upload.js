@@ -25,7 +25,7 @@ async function uploadImage(imagePath) {
         }, wallet);
         
         // Tag'leri ekle
-        transaction.addTag('Network', 'bigfile.localnet');  // Network tag'i
+        transaction.addTag('Network', 'BigFile.V1');  // Güncellenmiş ağ adı
         transaction.addTag('Content-Type', `image/${imageType}`);
         transaction.addTag('App-Name', 'BigFileTest');
         transaction.addTag('Type', 'Image');
@@ -81,7 +81,7 @@ async function uploadImage(imagePath) {
         
         console.log('\nVeri Erişim:');
         console.log('------------------------');
-        console.log('URL:', `http://thebigfile.info:1984/${transaction.id}`);
+        console.log('URL:', `https://thebigfile.info:1984/${transaction.id}`);
         
         // İşlem tamamlandığında process'i sonlandır
         process.exit(0);
@@ -96,5 +96,5 @@ async function uploadImage(imagePath) {
 }
 
 // Resim dosyasının yolunu belirtin
-const imagePath = './test.png'; // Bu kısmı kendi resim dosyanızın yoluyla değiştirin
+const imagePath = './testsvg.svg'; // Bu kısmı kendi resim dosyanızın yoluyla değiştirin
 uploadImage(imagePath); 
