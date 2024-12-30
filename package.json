@@ -19,7 +19,7 @@
     "test-network": "node 13_network_info.js",
     "test-wallets": "node 14_wallet_operations.js",
     "test-blocks": "node 15_block_operations.js",
-    "test-graphql": "node 16_graphql_test.js",
+    "test-queries": "node 16_data_queries.js",
     "test-speed": "node 17_speed_test.js",
     "test-load": "node 18_load_test.js",
     "test-large-file": "node 19_large_file_test.js",
@@ -30,19 +30,19 @@
     "test-stress": "node 27_network_stress_test.js",
     "test-consistency": "node 28_data_consistency_test.js",
     "test-security": "node 29_security_test.js",
-    "test-nft": "node 30_nft_test.js",
-    "test-index": "node 31_index_test.js",
-    "test-permaweb": "node 32_permaweb_test.js",
-    "test-all": "npm run test-stress && npm run test-consistency && npm run test-security && npm run test-nft && npm run test-index && npm run test-permaweb",
     "monitor": "node 33_monitor_node.js",
-    "check-network": "curl https://thebigfile.info:1984/info",
+    "check-network": "curl http://213.239.206.178:1984/info",
     "test-manifest": "node 36_path_manifest_test.js",
     "test-nft-collection": "node 37_nft_collection_test.js",
     "test-indexing": "node 38_data_indexing_test.js",
     "test-web": "npm run test-manifest && npm run test-nft-collection && npm run test-indexing",
-    "upload-large-file": "node 42_large_file_upload.js"
+    "upload-large-file": "node 42_large_file_upload.js",
+    "verify-svg": "node 43_verify_svg_download.js",
+    "download-image": "node 12_image_download.js",
+    "verify-image": "node 12_image_verify.js"
   },
   "dependencies": {
-    "arweave": "^1.15.5"
+    "arweave": "^1.15.5",
+    "node-fetch": "^2.7.0"
   }
 }

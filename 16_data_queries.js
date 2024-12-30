@@ -54,14 +54,6 @@ async function testQueries() {
             }
         } catch (blockError) {
             console.log('Blok bilgisi alınamadı:', blockError.message);
-            
-            // Alternatif olarak son işlemleri kontrol et
-            try {
-                const lastTx = await arweave.transactions.getStatus('LAST_TX_ID');
-                console.log('\nSon İşlem Durumu:', lastTx);
-            } catch (txError) {
-                console.log('Son işlem bilgisi alınamadı:', txError.message);
-            }
         }
 
         // 3. Node durumu

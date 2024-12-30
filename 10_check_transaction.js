@@ -2,6 +2,14 @@ const arweave = require('./config.js');
 
 async function checkTransaction(txId) {
     try {
+        // Node durumunu kontrol et
+        const networkInfo = await arweave.network.getInfo();
+        console.log('\nNode Durumu:');
+        console.log('------------------------');
+        console.log('Height:', networkInfo.height);
+        console.log('Current:', networkInfo.current);
+        console.log('Network:', networkInfo.network);
+        
         console.log('\nİşlem Kontrol:');
         console.log('------------------------');
         console.log('İşlem ID:', txId);
@@ -12,55 +20,47 @@ async function checkTransaction(txId) {
         console.log('------------------------');
         console.log('Status Code:', status.status);
         
-        if (status.confirmed) {
-            console.log('Blok Yüksekliği:', status.confirmed.block_height);
-            console.log('Onay Sayısı:', status.confirmed.number_of_confirmations);
+        switch (status.status) {
+            case 200:
+                console.log('Durum: İşlem onaylandı ve blok zincirine eklendi');
+                break;
+            case 202:
+                console.log('Durum: İşlem havuzda, işleniyor');
+                console.log('Lütfen birkaç dakika bekleyin...');
+                return;
+            case 404:
+                console.log('Durum: İşlem bulunamadı');
+                console.log('Node senkronizasyonu tamamlanana kadar bekleyin.');
+                return;
+            default:
+                console.log('Durum: Beklenmeyen durum kodu');
+                return;
         }
-
+        
         try {
             // İşlem detaylarını al
             const tx = await arweave.transactions.get(txId);
-            console.log('\nİşlem Detayları:');
-            console.log('------------------------');
-            console.log('Gönderen:', await arweave.wallets.ownerToAddress(tx.owner));
-            
-            // Tag'leri kontrol et
-            const tags = {};
-            tx.get('tags').forEach(tag => {
-                const key = tag.get('name', { decode: true, string: true });
-                const value = tag.get('value', { decode: true, string: true });
-                tags[key] = value;
-            });
-            
-            console.log('\nTag Bilgileri:');
-            console.log('------------------------');
-            console.log(tags);
-            
-            // İşlem tipine göre detayları göster
-            if (tags['Type'] === 'Transfer') {
-                console.log('\nTransfer Detayları:');
+            if (tx) {
+                console.log('\nİşlem Detayları:');
                 console.log('------------------------');
-                console.log('Alıcı:', tx.target);
-                console.log('Miktar:', arweave.ar.winstonToAr(tx.quantity), 'AR');
-            } else {
-                console.log('\nVeri Detayları:');
+                console.log('Data Size:', tx.data_size, 'bytes');
+                console.log('Owner:', await arweave.wallets.ownerToAddress(tx.owner));
+                console.log('Reward:', arweave.ar.winstonToAr(tx.reward), 'AR');
+                
+                // Tag'leri göster
+                const tags = {};
+                tx.get('tags').forEach(tag => {
+                    const key = tag.get('name', { decode: true, string: true });
+                    const value = tag.get('value', { decode: true, string: true });
+                    tags[key] = value;
+                });
+                console.log('\nTag\'ler:', tags);
+
+                // İşlem URL'ini göster
+                console.log('\nİşlem URL:');
                 console.log('------------------------');
-                console.log('Veri Boyutu:', tx.data_size, 'bytes');
-                if (tags['Content-Type'] === 'application/json') {
-                    const data = tx.get('data', { decode: true, string: true });
-                    console.log('JSON Veri:', JSON.parse(data));
-                }
+                console.log(`http://213.239.206.178:1984/${txId}`);
             }
-            
-            console.log('\nMaliyet Bilgileri:');
-            console.log('------------------------');
-            console.log('İşlem Ücreti:', arweave.ar.winstonToAr(tx.reward), 'AR');
-            
-            // Erişim URL'i
-            console.log('\nVeri Erişim:');
-            console.log('------------------------');
-            console.log('URL:', `https://thebigfile.info:1984/${txId}`);
-            
         } catch (txError) {
             console.log('\nİşlem detayları henüz hazır değil');
             console.log('Hata:', txError.message);
@@ -68,9 +68,19 @@ async function checkTransaction(txId) {
         
     } catch (error) {
         console.error('\nHata:', error);
+        if (error.response) {
+            console.error('Sunucu Yanıtı:', error.response.data);
+        }
     }
 }
 
-// Son işlem ID'sini buraya yapıştırın
-const txId = 'FaiGT0SW53EhEbzhgOi5LTAphHh1uAu2nUu8mdjvmhs';
+// Kontrol edilecek işlem ID'si
+const txId = process.argv[2] || 'Db_lpeWjUvDj_gRLJ4NnuL6cqU9ckGlWAXKrogXRCb4';
+
+if (!txId) {
+    console.error('\nHata: TX ID belirtilmedi');
+    console.log('Kullanım: npm run check-tx-status <TX_ID>');
+    process.exit(1);
+}
+
 checkTransaction(txId); 

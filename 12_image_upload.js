@@ -3,98 +3,83 @@ const fs = require('fs');
 
 async function uploadImage(imagePath) {
     try {
-        // Ana cüzdanı kullan (wallet.json)
+        // Node durumunu kontrol et
+        const networkInfo = await arweave.network.getInfo();
+        console.log('\nNode Durumu:');
+        console.log('------------------------');
+        console.log('Network:', networkInfo.network);
+        console.log('Version:', networkInfo.version);
+        console.log('Height:', networkInfo.height);
+        console.log('Current Block:', networkInfo.current);
+        console.log('Peers:', networkInfo.peers);
+        
         const wallet = JSON.parse(fs.readFileSync('wallet.json'));
-        
-        // Önce bakiyeyi kontrol et
         const address = await arweave.wallets.jwkToAddress(wallet);
-        const balance = await arweave.wallets.getBalance(address);
         
+        // Bakiye kontrolü
+        const balance = await arweave.wallets.getBalance(address);
         console.log('\nCüzdan Bilgileri:');
         console.log('------------------------');
         console.log('Adres:', address);
         console.log('Bakiye:', arweave.ar.winstonToAr(balance), 'AR');
         
-        // Resim dosyasını oku
+        // Resim verisi
         const imageData = fs.readFileSync(imagePath);
-        const imageType = imagePath.split('.').pop().toLowerCase(); // jpg, png vs.
+        const imageType = imagePath.split('.').pop().toLowerCase();
         
         // Transaction oluştur
         const transaction = await arweave.createTransaction({
             data: imageData
         }, wallet);
         
-        // Tag'leri ekle
-        transaction.addTag('Network', 'BigFile.V1');  // Güncellenmiş ağ adı
+        // Sadece gerekli tag'i ekle
         transaction.addTag('Content-Type', `image/${imageType}`);
-        transaction.addTag('App-Name', 'BigFileTest');
-        transaction.addTag('Type', 'Image');
-        transaction.addTag('File-Type', imageType);
-        transaction.addTag('Creator', address);
-        transaction.addTag('Original-Name', imagePath.split('/').pop());
-        transaction.addTag('Upload-Date', new Date().toISOString());
-        
-        // İşlem ücretini görüntüle
-        console.log('\nYükleme Detayları:');
-        console.log('------------------------');
-        console.log('Dosya Adı:', imagePath.split('/').pop());
-        console.log('Dosya Türü:', imageType);
-        console.log('Dosya Boyutu:', (imageData.length / 1024).toFixed(2), 'KB');
-        console.log('İşlem Ücreti:', arweave.ar.winstonToAr(transaction.reward), 'AR');
-        
-        // Kullanıcı onayı
-        console.log('\nDevam etmek istiyor musunuz? (Y/N)');
-        const response = await new Promise(resolve => {
-            process.stdin.once('data', data => {
-                resolve(data.toString().trim().toLowerCase());
-            });
-        });
-        
-        if (response !== 'y') {
-            console.log('İşlem iptal edildi');
-            return;
-        }
         
         // İşlemi imzala
         await arweave.transactions.sign(transaction, wallet);
         
-        console.log('\nDosya yükleniyor...');
+        console.log('\nTransaction Detayları:');
+        console.log('------------------------');
+        console.log('Data Size:', transaction.data_size, 'bytes');
+        console.log('Owner:', transaction.owner.slice(0, 50) + '...');
+        console.log('Reward:', arweave.ar.winstonToAr(transaction.reward), 'AR');
         
-        // Büyük dosyalar için chunk chunk yükle
-        let uploader = await arweave.transactions.getUploader(transaction);
-        
-        while (!uploader.isComplete) {
-            await uploader.uploadChunk();
-            console.log(`Yükleme: ${uploader.pctComplete}% tamamlandı`);
-            // Her chunk sonrası küçük bir bekleme ekle
-            await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-        
-        // İşlem durumunu kontrol et
-        const finalStatus = await arweave.transactions.getStatus(transaction.id);
+        // İşlemi gönder
+        console.log('\nİşlem gönderiliyor...');
+        const response = await arweave.transactions.post(transaction);
         
         console.log('\nSonuç:');
         console.log('------------------------');
-        console.log('İşlem ID:', transaction.id);
-        console.log('Status:', finalStatus.status);
-        console.log('Durum:', finalStatus.status === 200 ? 'Başarılı' : 'İşleniyor');
+        console.log('TX ID:', transaction.id);
+        console.log('Status:', response.status);
         
-        console.log('\nVeri Erişim:');
-        console.log('------------------------');
-        console.log('URL:', `https://thebigfile.info:1984/${transaction.id}`);
-        
-        // İşlem tamamlandığında process'i sonlandır
-        process.exit(0);
+        if (response.status === 200) {
+            console.log('URL:', `http://213.239.206.178:1984/${transaction.id}`);
+            
+            // Veriyi chunk chunk yükle
+            console.log('\nVeri yükleniyor...');
+            let uploader = await arweave.transactions.getUploader(transaction);
+            
+            while (!uploader.isComplete) {
+                await uploader.uploadChunk();
+                console.log(`Yükleme: ${uploader.pctComplete}% tamamlandı`);
+            }
+        } else {
+            console.error('Sunucu Yanıtı:', response.data);
+            console.error('\nHata Detayları:');
+            console.error('------------------------');
+            console.error('Transaction ID:', transaction.id);
+            console.error('Data Size:', transaction.data_size);
+            console.error('Reward:', transaction.reward);
+        }
         
     } catch (error) {
         console.error('\nHata:', error);
         if (error.response) {
             console.error('Sunucu Yanıtı:', error.response.data);
         }
-        process.exit(1);
     }
 }
 
-// Resim dosyasının yolunu belirtin
-const imagePath = './testsvg.svg'; // Bu kısmı kendi resim dosyanızın yoluyla değiştirin
+const imagePath = './test.png';
 uploadImage(imagePath); 

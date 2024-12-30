@@ -5,75 +5,70 @@ async function testPathManifest() {
     try {
         console.log('\nPath Manifest Testi:');
         console.log('------------------------');
-        
+
         const wallet = JSON.parse(fs.readFileSync('wallet.json'));
-        
+
+        // HTML dosyası yükle
+        const htmlTx = await arweave.createTransaction({
+            data: '<html><body><h1>Test</h1></body></html>'
+        }, wallet);
+        htmlTx.addTag('Content-Type', 'text/html');
+        await arweave.transactions.sign(htmlTx, wallet);
+        await arweave.transactions.post(htmlTx);
+        console.log('index.html yüklendi:', htmlTx.id);
+
+        // CSS dosyası yükle
+        const cssTx = await arweave.createTransaction({
+            data: 'body { background: #f0f0f0; }'
+        }, wallet);
+        cssTx.addTag('Content-Type', 'text/css');
+        await arweave.transactions.sign(cssTx, wallet);
+        await arweave.transactions.post(cssTx);
+        console.log('style.css yüklendi:', cssTx.id);
+
+        // JS dosyası yükle
+        const jsTx = await arweave.createTransaction({
+            data: 'console.log("Test");'
+        }, wallet);
+        jsTx.addTag('Content-Type', 'application/javascript');
+        await arweave.transactions.sign(jsTx, wallet);
+        await arweave.transactions.post(jsTx);
+        console.log('app.js yüklendi:', jsTx.id);
+
         // Manifest oluştur
         const manifest = {
             manifest: 'arweave/paths',
             version: '0.1.0',
-            index: {
-                path: 'index.html'
-            },
             paths: {
                 'index.html': {
-                    'id': '' // HTML işlem ID'si
+                    'id': htmlTx.id
                 },
                 'style.css': {
-                    'id': '' // CSS işlem ID'si
+                    'id': cssTx.id
                 },
                 'app.js': {
-                    'id': '' // JS işlem ID'si
+                    'id': jsTx.id
                 }
             }
         };
-
-        // Dosyaları yükle
-        const files = {
-            'index.html': '<html><head><link rel="stylesheet" href="style.css"></head><body><script src="app.js"></script></body></html>',
-            'style.css': 'body { background: #f0f0f0; }',
-            'app.js': 'console.log("BigFile Test App");'
-        };
-
-        // Her dosyayı ayrı ayrı yükle
-        for (let [filename, content] of Object.entries(files)) {
-            const tx = await arweave.createTransaction({
-                data: Buffer.from(content)
-            }, wallet);
-
-            tx.addTag('Content-Type', getMimeType(filename));
-            await arweave.transactions.sign(tx, wallet);
-            await arweave.transactions.post(tx);
-
-            manifest.paths[filename].id = tx.id;
-            console.log(`${filename} yüklendi:`, tx.id);
-        }
 
         // Manifest'i yükle
         const manifestTx = await arweave.createTransaction({
             data: JSON.stringify(manifest)
         }, wallet);
-
         manifestTx.addTag('Content-Type', 'application/x.arweave-manifest+json');
         await arweave.transactions.sign(manifestTx, wallet);
         await arweave.transactions.post(manifestTx);
 
         console.log('\nManifest yüklendi:', manifestTx.id);
-        console.log('URL:', `https://thebigfile.info:1984/${manifestTx.id}`);
-        
+        console.log('URL:', `http://213.239.206.178:1984/${manifestTx.id}`);
+
     } catch (error) {
         console.error('\nHata:', error);
+        if (error.response) {
+            console.error('Sunucu Yanıtı:', error.response.data);
+        }
     }
-}
-
-function getMimeType(filename) {
-    const ext = filename.split('.').pop();
-    const types = {
-        'html': 'text/html',
-        'css': 'text/css',
-        'js': 'application/javascript'
-    };
-    return types[ext] || 'text/plain';
 }
 
 testPathManifest(); 
