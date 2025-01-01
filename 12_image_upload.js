@@ -54,7 +54,7 @@ async function uploadImage(imagePath) {
         console.log('Status:', response.status);
         
         if (response.status === 200) {
-            console.log('URL:', `http://213.239.206.178:1984/${transaction.id}`);
+            console.log('URL:', `http://65.108.0.39:1984/${transaction.id}`);
             
             // Veriyi chunk chunk yükle
             console.log('\nVeri yükleniyor...');

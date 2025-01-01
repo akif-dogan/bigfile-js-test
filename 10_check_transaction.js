@@ -75,7 +75,7 @@ async function checkTransaction(txId) {
 }
 
 // Kontrol edilecek işlem ID'si
-const txId = process.argv[2] || 'ptxh_dzS85pDUYXOCokj3iHNwMJAo8Fm4uuROXVHdYw';
+const txId = process.argv[2] || 'UcknmXwsmdh4g_hvzUQDiF-VU0P098aEzc5GLAYy7Mo';
 
 if (!txId) {
     console.error('\nHata: TX ID belirtilmedi');

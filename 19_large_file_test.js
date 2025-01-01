@@ -59,22 +59,33 @@ async function testLargeFileUpload(filePath) {
             console.log('Transaction başarıyla gönderildi.');
             console.log('URL:', `http://213.239.206.178:1984/${transaction.id}`);
             
-            // Chunk yükleme
-            console.log('\nDosya yükleniyor...');
-            let uploader = await arweave.transactions.getUploader(transaction);
-            
-            while (!uploader.isComplete) {
-                await uploader.uploadChunk();
-                console.log(`Yükleme: ${uploader.pctComplete}% tamamlandı`);
+            try {
+                // Chunk yükleme
+                console.log('\nDosya yükleniyor...');
+                let uploader = await arweave.transactions.getUploader(transaction);
                 
-                // Her chunk sonrası küçük bir bekleme
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                while (!uploader.isComplete) {
+                    await uploader.uploadChunk();
+                    console.log(`Yükleme: ${uploader.pctComplete}% tamamlandı`);
+                    // Her chunk sonrası 5 saniye bekle
+                    await new Promise(resolve => setTimeout(resolve, 5000));
+                }
+                
+                console.log('\nYükleme tamamlandı!');
+                console.log('------------------------');
+                console.log('TX ID:', transaction.id);
+                console.log('URL:', `http://213.239.206.178:1984/${transaction.id}`);
+            } catch (uploadError) {
+                // Eğer chunk yükleme hatası "already on the weave" ise, bu başarılı sayılır
+                if (uploadError.message.includes('Transaction is already on the weave')) {
+                    console.log('\nDosya zaten ağda mevcut!');
+                    console.log('------------------------');
+                    console.log('TX ID:', transaction.id);
+                    console.log('URL:', `http://213.239.206.178:1984/${transaction.id}`);
+                } else {
+                    throw uploadError;
+                }
             }
-            
-            console.log('\nYükleme tamamlandı!');
-            console.log('------------------------');
-            console.log('TX ID:', transaction.id);
-            console.log('URL:', `http://213.239.206.178:1984/${transaction.id}`);
             
         } else {
             console.error('\nHata:', response.status);
@@ -82,7 +93,7 @@ async function testLargeFileUpload(filePath) {
         }
 
     } catch (error) {
-        console.error('\nHata:', error);
+        console.error('\nHata:', error.message);
         if (error.response) {
             console.error('Sunucu Yanıtı:', error.response.data);
         }
@@ -90,5 +101,5 @@ async function testLargeFileUpload(filePath) {
 }
 
 // Test için büyük bir dosya yolu belirtin
-const filePath = './test_200mb.dat'; // veya başka bir büyük dosya
+const filePath = './test_200mb.dat';
 testLargeFileUpload(filePath); 

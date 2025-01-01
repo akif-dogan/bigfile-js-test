@@ -1,7 +1,7 @@
 {
-  "name": "arweave-test",
+  "name": "bigfile-test",
   "version": "1.0.0",
-  "description": "Arweave Test Suite",
+  "description": "BigFile Test Suite",
   "scripts": {
     "test-connection": "node 1_connection_test.js",
     "create-wallet": "node 2_wallet_setup.js",
@@ -31,7 +31,7 @@
     "test-consistency": "node 28_data_consistency_test.js",
     "test-security": "node 29_security_test.js",
     "monitor": "node 33_monitor_node.js",
-    "check-network": "curl http://213.239.206.178:1984/info",
+    "check-network": "curl http://65.108.0.39:1984/info",
     "test-manifest": "node 36_path_manifest_test.js",
     "test-nft-collection": "node 37_nft_collection_test.js",
     "test-indexing": "node 38_data_indexing_test.js",
@@ -39,7 +39,8 @@
     "upload-large-file": "node 42_large_file_upload.js",
     "verify-svg": "node 43_verify_svg_download.js",
     "download-image": "node 12_image_download.js",
-    "verify-image": "node 12_image_verify.js"
+    "verify-image": "node 12_image_verify.js",
+    "check-wallet2": "node 8_check_wallet2_balance.js"
   },
   "dependencies": {
     "arweave": "^1.15.5",

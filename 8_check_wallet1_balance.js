@@ -46,6 +46,8 @@ async function checkWallet1Balance() {
             console.log('\nSon Giden İşlemler:', outgoingTxs.slice(0, 5));
         }
         
+        console.log('Network URL:', 'http://65.108.0.39:1984');
+        
     } catch (error) {
         console.error('Wallet1 bakiye kontrol hatası:', error);
     }
