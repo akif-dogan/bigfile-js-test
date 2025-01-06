@@ -59,7 +59,7 @@ async function checkTransaction(txId) {
                 // İşlem URL'ini göster
                 console.log('\nİşlem URL:');
                 console.log('------------------------');
-                console.log(`http://213.239.206.178:1984/${txId}`);
+                console.log(`http://65.108.0.39:1984/${txId}`);
             }
         } catch (txError) {
             console.log('\nİşlem detayları henüz hazır değil');
@@ -75,7 +75,7 @@ async function checkTransaction(txId) {
 }
 
 // Kontrol edilecek işlem ID'si
-const txId = process.argv[2] || 'UcknmXwsmdh4g_hvzUQDiF-VU0P098aEzc5GLAYy7Mo';
+const txId = process.argv[2] || 'uPI4MlS6wXxwiVHprUWqoNbrHvJEx91bCrhNqWZAaA0';
 
 if (!txId) {
     console.error('\nHata: TX ID belirtilmedi');

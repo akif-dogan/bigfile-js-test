@@ -57,7 +57,7 @@ async function testLargeFileUpload(filePath) {
         
         if (response.status === 200) {
             console.log('Transaction başarıyla gönderildi.');
-            console.log('URL:', `http://213.239.206.178:1984/${transaction.id}`);
+            console.log('URL:', `http://65.108.0.39:1984/${transaction.id}`);
             
             try {
                 // Chunk yükleme
@@ -74,14 +74,14 @@ async function testLargeFileUpload(filePath) {
                 console.log('\nYükleme tamamlandı!');
                 console.log('------------------------');
                 console.log('TX ID:', transaction.id);
-                console.log('URL:', `http://213.239.206.178:1984/${transaction.id}`);
+                console.log('URL:', `http://65.108.0.39:1984/${transaction.id}`);
             } catch (uploadError) {
                 // Eğer chunk yükleme hatası "already on the weave" ise, bu başarılı sayılır
                 if (uploadError.message.includes('Transaction is already on the weave')) {
                     console.log('\nDosya zaten ağda mevcut!');
                     console.log('------------------------');
                     console.log('TX ID:', transaction.id);
-                    console.log('URL:', `http://213.239.206.178:1984/${transaction.id}`);
+                    console.log('URL:', `http://65.108.0.39:1984/${transaction.id}`);
                 } else {
                     throw uploadError;
                 }

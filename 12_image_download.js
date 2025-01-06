@@ -48,6 +48,8 @@ async function downloadImage(txId, outputPath) {
             console.log('Görüntü türü:', fileType);
         }
 
+        console.log('URL:', `http://65.108.0.39:1984/${txId}`);
+
     } catch (error) {
         console.error('\nHata:', error);
         if (error.response) {

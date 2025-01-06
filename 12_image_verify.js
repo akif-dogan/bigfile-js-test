@@ -45,7 +45,7 @@ async function verifyAndDownload(txId) {
         console.log('------------------------');
         console.log('Kayıt yolu:', outputPath);
         console.log('Dosya boyutu:', buffer.length, 'bytes');
-        console.log('İşlem URL:', `http://213.239.206.178:1984/${txId}`);
+        console.log('İşlem URL:', `http://65.108.0.39:1984/${txId}`);
 
         // Dosya bütünlüğünü kontrol et
         if (buffer.length === tx.data_size) {

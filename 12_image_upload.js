@@ -27,12 +27,12 @@ async function uploadImage(imagePath) {
         const imageData = fs.readFileSync(imagePath);
         const imageType = imagePath.split('.').pop().toLowerCase();
         
-        // Transaction oluştur
+        // Transaction oluştur - sadece data ve wallet belirt
         const transaction = await arweave.createTransaction({
             data: imageData
         }, wallet);
         
-        // Sadece gerekli tag'i ekle
+        // Content-Type tag'i ekle
         transaction.addTag('Content-Type', `image/${imageType}`);
         
         // İşlemi imzala
@@ -63,6 +63,8 @@ async function uploadImage(imagePath) {
             while (!uploader.isComplete) {
                 await uploader.uploadChunk();
                 console.log(`Yükleme: ${uploader.pctComplete}% tamamlandı`);
+                // Her chunk sonrası 1 saniye bekle
+                await new Promise(resolve => setTimeout(resolve, 1000));
             }
         } else {
             console.error('Sunucu Yanıtı:', response.data);

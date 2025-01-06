@@ -16,31 +16,28 @@ async function transferFromWallet1() {
         
         // Bakiyeleri kontrol et
         const sourceBalance = await arweave.wallets.getBalance(sourceAddress);
-        console.log('Gönderen Bakiye:', arweave.ar.winstonToAr(sourceBalance), 'AR');
+        console.log('Gönderen (Wallet1) Bakiye:', arweave.ar.winstonToAr(sourceBalance), 'AR');
         
-        // Transfer miktarı: 1000 AR
-        const transferAmount = arweave.ar.arToWinston('1000');
-        
-        // Transaction oluştur
+        // Transaction oluştur - reward'ı node'a bırak
         const transaction = await arweave.createTransaction({
             target: targetAddress,
-            quantity: transferAmount,
-            data: Buffer.from('Transfer from Wallet1')
+            quantity: arweave.ar.arToWinston('1000000'), // 1M AR
+            data: Buffer.from('Transfer: 1M AR from Wallet1')
         }, sourceWallet);
         
         // Tag'leri ekle
         transaction.addTag('App-Name', 'BigFileTest');
-        transaction.addTag('Type', 'Transfer');
-        transaction.addTag('Version', '1.0');
-        transaction.addTag('Network', 'bigfile.localnet');
-        transaction.addTag('Network-Type', 'testnet');
+        transaction.addTag('Type', 'Large-Transfer');
+        transaction.addTag('Amount', '1000000');
+        transaction.addTag('From', sourceAddress);
+        transaction.addTag('To', targetAddress);
         
         // İşlem ücretini görüntüle
         console.log('\nİşlem Detayları:');
         console.log('------------------------');
         console.log('Gönderen:', sourceAddress);
         console.log('Alıcı:', targetAddress);
-        console.log('Transfer Miktarı:', '1000 AR');
+        console.log('Transfer Miktarı:', '1,000,000 AR');
         console.log('İşlem Ücreti:', arweave.ar.winstonToAr(transaction.reward), 'AR');
         
         // İşlemi imzala
@@ -56,16 +53,18 @@ async function transferFromWallet1() {
         
         if (response.status === 200) {
             console.log('Transfer başarıyla gönderildi');
+            console.log('URL:', `http://65.108.0.39:1984/${transaction.id}`);
             console.log('\nİşlemi kontrol etmek için:');
-            console.log(`npm run check-tx-status # TX ID: ${transaction.id}`);
+            console.log(`npm run check-tx-status ${transaction.id}`);
         } else {
+            console.error('Sunucu Yanıtı:', response.data);
             throw new Error(`Transfer başarısız: ${response.statusText}`);
         }
         
     } catch (error) {
         console.error('\nTransfer Hatası:', error.message);
         if (error.response) {
-            console.error('Sunucu Yan��tı:', error.response.data);
+            console.error('Sunucu Yanıtı:', error.response.data);
         }
     }
 }
