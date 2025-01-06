@@ -20,8 +20,8 @@ async function transferToWallet1() {
         console.log('------------------------');
         console.log('Kaynak Cüzdan Bakiyesi:', arweave.ar.winstonToAr(sourceBalance), 'AR');
         
-        // Transfer miktarı: 1000 AR
-        const transferAmount = arweave.ar.arToWinston('1000');
+        // Transfer miktarı: 1 milyon AR
+        const transferAmount = '1000000';
         
         // Transfer işlemi oluştur
         const transaction = await arweave.createTransaction({
@@ -38,12 +38,12 @@ async function transferToWallet1() {
         // İşlem ücretini görüntüle
         console.log('\nTransfer Detayları:');
         console.log('------------------------');
-        console.log('Transfer Miktarı:', '1000 AR');
+        console.log('Transfer Miktarı:', '1000000 AR');
         console.log('İşlem Ücreti:', arweave.ar.winstonToAr(transaction.reward), 'AR');
         console.log('Hedef Adres:', targetAddress);
         
         // Toplam maliyet kontrolü
-        const totalCost = Number(transferAmount) + Number(transaction.reward);
+        const totalCost = Number(arweave.ar.arToWinston(transferAmount)) + Number(transaction.reward);
         if (Number(sourceBalance) < totalCost) {
             throw new Error('Yetersiz bakiye! Transfer + işlem ücreti için yeterli AR yok.');
         }

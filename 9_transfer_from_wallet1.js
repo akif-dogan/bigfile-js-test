@@ -14,36 +14,49 @@ async function transferFromWallet1() {
         const targetWallet = JSON.parse(fs.readFileSync('wallet.json'));
         const targetAddress = await arweave.wallets.jwkToAddress(targetWallet);
         
-        // Bakiyeleri kontrol et
-        const sourceBalance = await arweave.wallets.getBalance(sourceAddress);
-        console.log('Gönderen (Wallet1) Bakiye:', arweave.ar.winstonToAr(sourceBalance), 'AR');
+        // Sabit transfer miktarı (200 milyon AR - işlem ücretlerini karşılayabilmek için)
+        const TRANSFER_AMOUNT = '200000000';
         
-        // Transaction oluştur - reward'ı node'a bırak
+        // Bakiyeleri kontrol et ve göster
+        const sourceBalance = await arweave.wallets.getBalance(sourceAddress);
+        const targetBalance = await arweave.wallets.getBalance(targetAddress);
+        
+        console.log('\nMevcut Bakiyeler:');
+        console.log('------------------------');
+        console.log('Kaynak (Wallet1):', arweave.ar.winstonToAr(sourceBalance), 'AR');
+        console.log('Hedef (Wallet):', arweave.ar.winstonToAr(targetBalance), 'AR');
+        
+        // Transfer işlemi oluştur
         const transaction = await arweave.createTransaction({
             target: targetAddress,
-            quantity: arweave.ar.arToWinston('1000000'), // 1M AR
-            data: Buffer.from('Transfer: 1M AR from Wallet1')
+            quantity: arweave.ar.arToWinston(TRANSFER_AMOUNT)
         }, sourceWallet);
         
-        // Tag'leri ekle
-        transaction.addTag('App-Name', 'BigFileTest');
-        transaction.addTag('Type', 'Large-Transfer');
-        transaction.addTag('Amount', '1000000');
-        transaction.addTag('From', sourceAddress);
-        transaction.addTag('To', targetAddress);
+        // Toplam maliyet hesapla
+        const transferAmountWinston = arweave.ar.arToWinston(TRANSFER_AMOUNT);
+        const totalCost = Number(transferAmountWinston) + Number(transaction.reward);
         
-        // İşlem ücretini görüntüle
-        console.log('\nİşlem Detayları:');
+        console.log('\nTransfer Detayları:');
         console.log('------------------------');
-        console.log('Gönderen:', sourceAddress);
-        console.log('Alıcı:', targetAddress);
-        console.log('Transfer Miktarı:', '1,000,000 AR');
+        console.log('Transfer Miktarı:', TRANSFER_AMOUNT, 'AR');
         console.log('İşlem Ücreti:', arweave.ar.winstonToAr(transaction.reward), 'AR');
+        console.log('Toplam Maliyet:', arweave.ar.winstonToAr(totalCost), 'AR');
         
-        // İşlemi imzala
+        // Bakiye kontrolü
+        if (Number(sourceBalance) < totalCost) {
+            throw new Error(`Yetersiz bakiye!
+                Gerekli: ${arweave.ar.winstonToAr(totalCost)} AR
+                Mevcut: ${arweave.ar.winstonToAr(sourceBalance)} AR`);
+        }
+        
+        // Network ve işlem tag'lerini ekle
+        transaction.addTag('Network', 'bigfile.localnet');
+        transaction.addTag('Type', 'Transfer');
+        transaction.addTag('App-Name', 'BigFileTest');
+        transaction.addTag('Version', '1.0');
+        
+        // İşlemi imzala ve gönder
         await arweave.transactions.sign(transaction, sourceWallet);
-        
-        // İşlemi gönder
         const response = await arweave.transactions.post(transaction);
         
         console.log('\nSonuç:');

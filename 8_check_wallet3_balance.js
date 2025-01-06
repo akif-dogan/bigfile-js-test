@@ -1,11 +1,11 @@
 const arweave = require('./config.js');
 const fs = require('fs');
 
-async function checkWallet2Balance() {
+async function checkWallet3Balance() {
     try {
-        // Wallet2'yi yükle
-        const wallet2 = JSON.parse(fs.readFileSync('wallet2.json'));
-        const address = await arweave.wallets.jwkToAddress(wallet2);
+        // Wallet3'ü yükle
+        const wallet3 = JSON.parse(fs.readFileSync('wallet3.json'));
+        const address = await arweave.wallets.jwkToAddress(wallet3);
         
         // Node durumunu kontrol et
         const networkInfo = await arweave.network.getInfo();
@@ -21,7 +21,7 @@ async function checkWallet2Balance() {
         const balance = await arweave.wallets.getBalance(address);
         const ar = arweave.ar.winstonToAr(balance);
         
-        console.log('\nWallet2 (Mining Wallet) Bilgileri:');
+        console.log('\nWallet3 Bilgileri:');
         console.log('------------------------');
         console.log('Adres:', address);
         console.log('Bakiye (AR):', ar);
@@ -50,12 +50,12 @@ async function checkWallet2Balance() {
         try {
             const miningAddress = await arweave.blocks.getCurrent();
             console.log('Mining Address:', miningAddress);
-            console.log('Wallet2 Mining Aktif:', miningAddress === address);
+            console.log('Wallet3 Mining Aktif:', miningAddress === address);
         } catch (miningError) {
             console.log('Mining durumu alınamadı:', miningError.message);
         }
 
-        // Mining ödül kontrolü ekleyelim
+        // Mining ödül kontrolü
         console.log('\nMining Ödül Kontrolü:');
         console.log('------------------------');
         try {
@@ -82,4 +82,4 @@ async function checkWallet2Balance() {
     }
 }
 
-checkWallet2Balance(); 
+checkWallet3Balance(); 

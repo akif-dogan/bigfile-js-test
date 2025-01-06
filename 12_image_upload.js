@@ -27,10 +27,41 @@ async function uploadImage(imagePath) {
         const imageData = fs.readFileSync(imagePath);
         const imageType = imagePath.split('.').pop().toLowerCase();
         
-        // Transaction oluştur - sadece data ve wallet belirt
+        // Transaction oluşturmadan önce data size'a göre ücret hesaplaması
+        const price = await arweave.transactions.getPrice(imageData.byteLength);
+        
+        console.log('\nİşlem Detayları:');
+        console.log('------------------------');
+        console.log('Data Boyutu:', imageData.byteLength, 'bytes');
+        console.log('Mevcut Bakiye:', arweave.ar.winstonToAr(balance), 'AR');
+        console.log('Gerekli Ücret:', arweave.ar.winstonToAr(price), 'AR');
+        
+        // Bakiye kontrolü
+        if (Number(balance) < Number(price)) {
+            console.log('\nÖnce wallet1\'den transfer yapılması gerekiyor!');
+            console.log('Lütfen şu komutu çalıştırın: npm run transfer-from-wallet1');
+            process.exit(1);
+        }
+        
+        // Transaction oluştur
         const transaction = await arweave.createTransaction({
-            data: imageData
+            data: imageData,
+            reward: price  // Ağın belirlediği ücreti kullan
         }, wallet);
+        
+        // Transaction detayları
+        console.log('\nTransaction Bilgileri:');
+        console.log('------------------------');
+        console.log('Transaction ID:', transaction.id);
+        console.log('İşlem Ücreti:', arweave.ar.winstonToAr(transaction.reward), 'AR');
+        console.log('Data Size:', transaction.data_size);
+        
+        // Bakiye kontrolü
+        if (Number(balance) < Number(transaction.reward)) {
+            throw new Error(`Yetersiz bakiye! 
+                Gerekli: ${arweave.ar.winstonToAr(transaction.reward)} AR
+                Mevcut: ${arweave.ar.winstonToAr(balance)} AR`);
+        }
         
         // Content-Type tag'i ekle
         transaction.addTag('Content-Type', `image/${imageType}`);
@@ -43,6 +74,10 @@ async function uploadImage(imagePath) {
         console.log('Data Size:', transaction.data_size, 'bytes');
         console.log('Owner:', transaction.owner.slice(0, 50) + '...');
         console.log('Reward:', arweave.ar.winstonToAr(transaction.reward), 'AR');
+        
+        // İşlem oluşturulduktan sonra bilgilendirme yapalım
+        console.log('Owner:', transaction.owner.slice(0, 50) + '...');
+        console.log('Transaction ID:', transaction.id);
         
         // İşlemi gönder
         console.log('\nİşlem gönderiliyor...');

@@ -40,7 +40,8 @@
     "verify-svg": "node 43_verify_svg_download.js",
     "download-image": "node 12_image_download.js",
     "verify-image": "node 12_image_verify.js",
-    "check-wallet2": "node 8_check_wallet2_balance.js"
+    "check-wallet2": "node 8_check_wallet2_balance.js",
+    "check-wallet3": "node 8_check_wallet3_balance.js"
   },
   "dependencies": {
     "arweave": "^1.15.5",
