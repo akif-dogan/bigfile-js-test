@@ -23,7 +23,7 @@ async function uploadFile(filePath) {
         
         // İşlem maliyetini hesapla
         console.log('Dosya Boyutu:', fileData.length, 'bytes');
-        console.log('İşlem Ücreti:', arweave.ar.winstonToAr(transaction.reward), 'AR');
+        console.log('İşlem Ücreti:', arweave.big.winstonToBIG(transaction.reward), 'BIG');
         
         // İşlemi imzala
         await arweave.transactions.sign(transaction, wallet);

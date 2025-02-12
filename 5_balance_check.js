@@ -12,7 +12,7 @@ async function checkBalance() {
         
         // Bakiye kontrolü
         const balance = await arweave.wallets.getBalance(address);
-        console.log('Bakiye:', arweave.ar.winstonToAr(balance), 'AR');
+        console.log('Bakiye:', arweave.big.winstonToBIG(balance), 'BIG');
         
         // Son işlemleri kontrol et
         try {

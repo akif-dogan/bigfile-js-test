@@ -19,12 +19,12 @@ async function checkWallet3Balance() {
         
         // Bakiye kontrolü
         const balance = await arweave.wallets.getBalance(address);
-        const ar = arweave.ar.winstonToAr(balance);
+        const big = arweave.big.winstonToBig(balance);
         
         console.log('\nWallet3 Bilgileri:');
         console.log('------------------------');
         console.log('Adres:', address);
-        console.log('Bakiye (AR):', ar);
+        console.log('Bakiye (BIG):', big);
         console.log('Bakiye (Winston):', balance);
         
         // Son blokları kontrol et
@@ -34,7 +34,7 @@ async function checkWallet3Balance() {
             const lastBlock = await arweave.blocks.get(networkInfo.current);
             console.log('Son Blok Hash:', lastBlock.indep_hash);
             console.log('Miner Address:', lastBlock.reward_addr);
-            console.log('Block Reward:', arweave.ar.winstonToAr(lastBlock.reward), 'AR');
+            console.log('Block Reward:', arweave.big.winstonToBig(lastBlock.reward), 'BIG');
             
             // Bu wallet'ın kazandığı blok var mı?
             if (lastBlock.reward_addr === address) {
@@ -66,7 +66,7 @@ async function checkWallet3Balance() {
                 
                 if (block.reward_addr === address) {
                     console.log(`Blok ${blockHeight}:`);
-                    console.log('Ödül:', arweave.ar.winstonToAr(block.reward), 'AR');
+                    console.log('Ödül:', arweave.big.winstonToBig(block.reward), 'BIG');
                     console.log('Durum: Onay bekliyor');
                 }
             }

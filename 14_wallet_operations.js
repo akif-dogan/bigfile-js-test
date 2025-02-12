@@ -20,14 +20,14 @@ async function testWalletOperations() {
         const address = await arweave.wallets.jwkToAddress(wallet);
         const balance = await arweave.wallets.getBalance(address);
         console.log('Wallet.json Adresi:', address);
-        console.log('Bakiye:', arweave.ar.winstonToAr(balance), 'AR');
+        console.log('Bakiye:', arweave.big.winstonToBig(balance), 'BIG');
         
         // wallet1.json kontrol
         const wallet1 = JSON.parse(fs.readFileSync('wallet1.json'));
         const address1 = await arweave.wallets.jwkToAddress(wallet1);
         const balance1 = await arweave.wallets.getBalance(address1);
         console.log('\nWallet1.json Adresi:', address1);
-        console.log('Bakiye:', arweave.ar.winstonToAr(balance1), 'AR');
+        console.log('Bakiye:', arweave.big.winstonToBig(balance1), 'BIG');
         
         // Son işlemleri kontrol et
         console.log('\n3. Son İşlemler:');
@@ -38,7 +38,10 @@ async function testWalletOperations() {
         console.log('Wallet1.json Son İşlem:', lastTx1);
         
     } catch (error) {
-        console.error('\nHata:', error);
+        console.error('\nCüzdan İşlemleri Hatası:', error.message);
+        if (error.response) {
+            console.error('Sunucu Yanıtı:', error.response.data);
+        }
     }
 }
 

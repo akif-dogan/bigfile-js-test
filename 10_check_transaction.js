@@ -2,39 +2,24 @@ const arweave = require('./config.js');
 
 async function checkTransaction(txId) {
     try {
-        // Node durumunu kontrol et
-        const networkInfo = await arweave.network.getInfo();
-        console.log('\nNode Durumu:');
-        console.log('------------------------');
-        console.log('Height:', networkInfo.height);
-        console.log('Current:', networkInfo.current);
-        console.log('Network:', networkInfo.network);
-        
-        console.log('\nİşlem Kontrol:');
-        console.log('------------------------');
-        console.log('İşlem ID:', txId);
-
         // İşlem durumunu kontrol et
         const status = await arweave.transactions.getStatus(txId);
-        console.log('\nDurum Bilgisi:');
-        console.log('------------------------');
-        console.log('Status Code:', status.status);
         
-        switch (status.status) {
-            case 200:
-                console.log('Durum: İşlem onaylandı ve blok zincirine eklendi');
-                break;
-            case 202:
-                console.log('Durum: İşlem havuzda, işleniyor');
-                console.log('Lütfen birkaç dakika bekleyin...');
-                return;
-            case 404:
-                console.log('Durum: İşlem bulunamadı');
-                console.log('Node senkronizasyonu tamamlanana kadar bekleyin.');
-                return;
-            default:
-                console.log('Durum: Beklenmeyen durum kodu');
-                return;
+        console.log('\nİşlem Durumu:');
+        console.log('------------------------');
+        console.log('Status:', status.status);
+        
+        if (status.status === 404) {
+            console.log('\nİşlem henüz onaylanmamış veya bulunamadı');
+            console.log('Lütfen birkaç dakika bekleyip tekrar deneyin');
+            return;
+        }
+        
+        if (status.confirmed) {
+            console.log('\nOnay Bilgileri:');
+            console.log('------------------------');
+            console.log('Blok Yüksekliği:', status.confirmed.block_height);
+            console.log('Onay Sayısı:', status.confirmed.number_of_confirmations);
         }
         
         try {
@@ -45,7 +30,7 @@ async function checkTransaction(txId) {
                 console.log('------------------------');
                 console.log('Data Size:', tx.data_size, 'bytes');
                 console.log('Owner:', await arweave.wallets.ownerToAddress(tx.owner));
-                console.log('Reward:', arweave.ar.winstonToAr(tx.reward), 'AR');
+                console.log('Reward:', arweave.big.winstonToBIG(tx.reward), 'BIG');
                 
                 // Tag'leri göster
                 const tags = {};
@@ -59,7 +44,7 @@ async function checkTransaction(txId) {
                 // İşlem URL'ini göster
                 console.log('\nİşlem URL:');
                 console.log('------------------------');
-                console.log(`http://65.108.0.39:1984/${txId}`);
+                console.log(`https://thebigfile.info:1984/${txId}`);
             }
         } catch (txError) {
             console.log('\nİşlem detayları henüz hazır değil');
@@ -74,12 +59,11 @@ async function checkTransaction(txId) {
     }
 }
 
-// Kontrol edilecek işlem ID'si
-const txId = process.argv[2] || 'f-g4FSNYQFeiC9nuaz51_0yNVBg7W9muWE2s6Mrwzbc';
-
+// Kontrol edilecek işlem ID'sini parametre olarak al
+const txId = process.argv[2];
 if (!txId) {
-    console.error('\nHata: TX ID belirtilmedi');
-    console.log('Kullanım: npm run check-tx-status <TX_ID>');
+    console.error('\nLütfen kontrol edilecek işlem ID\'sini belirtin');
+    console.error('Örnek: node check_transaction.js TX_ID');
     process.exit(1);
 }
 

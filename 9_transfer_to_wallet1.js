@@ -18,15 +18,15 @@ async function transferToWallet1() {
         
         console.log('\nTransfer Öncesi Bakiyeler:');
         console.log('------------------------');
-        console.log('Kaynak Cüzdan Bakiyesi:', arweave.ar.winstonToAr(sourceBalance), 'AR');
+        console.log('Kaynak Cüzdan Bakiyesi:', arweave.big.winstonToBig(sourceBalance), 'BIG');
         
-        // Transfer miktarı: 1 milyon AR
+        // Transfer miktarı: 1 milyon BIG
         const transferAmount = '1000000';
         
         // Transfer işlemi oluştur
         const transaction = await arweave.createTransaction({
             target: targetAddress,
-            quantity: arweave.ar.arToWinston(transferAmount)
+            quantity: arweave.big.bigToWinston(transferAmount)
         }, sourceWallet);
         
         // Network ve işlem tag'lerini ekle
@@ -38,14 +38,14 @@ async function transferToWallet1() {
         // İşlem ücretini görüntüle
         console.log('\nTransfer Detayları:');
         console.log('------------------------');
-        console.log('Transfer Miktarı:', '1000000 AR');
-        console.log('İşlem Ücreti:', arweave.ar.winstonToAr(transaction.reward), 'AR');
+        console.log('Transfer Miktarı:', '1000000 BIG');
+        console.log('İşlem Ücreti:', arweave.big.winstonToBig(transaction.reward), 'BIG');
         console.log('Hedef Adres:', targetAddress);
         
         // Toplam maliyet kontrolü
-        const totalCost = Number(arweave.ar.arToWinston(transferAmount)) + Number(transaction.reward);
+        const totalCost = Number(arweave.big.bigToWinston(transferAmount)) + Number(transaction.reward);
         if (Number(sourceBalance) < totalCost) {
-            throw new Error('Yetersiz bakiye! Transfer + işlem ücreti için yeterli AR yok.');
+            throw new Error('Yetersiz bakiye! Transfer + işlem ücreti için yeterli BIG yok.');
         }
         
         // İşlemi imzala
@@ -62,6 +62,9 @@ async function transferToWallet1() {
         
     } catch (error) {
         console.error('\nTransfer Hatası:', error.message);
+        if (error.response) {
+            console.error('Sunucu Yanıtı:', error.response.data);
+        }
     }
 }
 

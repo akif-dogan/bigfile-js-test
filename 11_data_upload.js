@@ -13,7 +13,7 @@ async function uploadData() {
         console.log('\nCüzdan Bilgileri:');
         console.log('------------------------');
         console.log('Adres:', address);
-        console.log('Bakiye:', arweave.ar.winstonToAr(balance), 'AR');
+        console.log('Bakiye:', arweave.big.winstonToBig(balance), 'BIG');
         
         // Örnek veri oluştur
         const data = {
@@ -30,18 +30,19 @@ async function uploadData() {
         }, wallet);
         
         // Tag'leri ekle
-        transaction.addTag('Network', 'BigFile.V1');
+        transaction.addTag('Network', 'bigfile.V.1.testnet');
         transaction.addTag('Content-Type', 'application/json');
         transaction.addTag('App-Name', 'BigFileTest');
         transaction.addTag('Type', 'Data');
-        transaction.addTag('Version', '1.0');
+        transaction.addTag('Version', '5');
+        transaction.addTag('Release', '78');
         transaction.addTag('Timestamp', Date.now().toString());
         
         // İşlem ücretini görüntüle
         console.log('\nYükleme Detayları:');
         console.log('------------------------');
         console.log('Veri Boyutu:', Buffer.from(JSON.stringify(data)).length, 'bytes');
-        console.log('İşlem Ücreti:', arweave.ar.winstonToAr(transaction.reward), 'AR');
+        console.log('İşlem Ücreti:', arweave.big.winstonToBig(transaction.reward), 'BIG');
         
         // İşlemi imzala
         await arweave.transactions.sign(transaction, wallet);
@@ -72,14 +73,14 @@ async function uploadData() {
         if (uploadResponse.status === 200) {
             console.log('\nVeri Erişim:');
             console.log('------------------------');
-            console.log('URL:', `https://thebigfile.info:1984/${transaction.id}`);
+            console.log('URL:', `http://65.108.0.39:1984/${transaction.id}`);
             console.log('\nVeri doğrulamak için:');
             console.log('------------------------');
             console.log('npm run check-tx-status # İşlem ID:', transaction.id);
         }
         
     } catch (error) {
-        console.error('\nHata:', error);
+        console.error('\nVeri Yükleme Hatası:', error.message);
         if (error.response) {
             console.error('Sunucu Yanıtı:', error.response.data);
         }

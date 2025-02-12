@@ -1,6 +1,15 @@
 const arweave = require('./config.js');
 const fs = require('fs');
 
+// Ağ adına göre para birimini belirle
+function getNetworkCurrency(networkName) {
+    const networkStandards = {
+        'BigFile.V1': 'BIG'
+        // Diğer BigFile ağları buraya eklenebilir
+    };
+    return networkStandards[networkName] || 'BIG'; // Bilinmeyen ağlar için de BIG kullan
+}
+
 async function transferFromWallet1() {
     try {
         console.log('\nTransfer Bilgileri:');
@@ -14,39 +23,43 @@ async function transferFromWallet1() {
         const targetWallet = JSON.parse(fs.readFileSync('wallet.json'));
         const targetAddress = await arweave.wallets.jwkToAddress(targetWallet);
         
-        // Sabit transfer miktarı (200 milyon AR - işlem ücretlerini karşılayabilmek için)
+        // Sabit transfer miktarı (200 milyon)
         const TRANSFER_AMOUNT = '200000000';
         
         // Bakiyeleri kontrol et ve göster
         const sourceBalance = await arweave.wallets.getBalance(sourceAddress);
         const targetBalance = await arweave.wallets.getBalance(targetAddress);
         
+        // Ağ bilgilerini al
+        const networkInfo = await arweave.network.getInfo();
+        const currency = getNetworkCurrency(networkInfo.network);
+        
         console.log('\nMevcut Bakiyeler:');
         console.log('------------------------');
-        console.log('Kaynak (Wallet1):', arweave.ar.winstonToAr(sourceBalance), 'AR');
-        console.log('Hedef (Wallet):', arweave.ar.winstonToAr(targetBalance), 'AR');
+        console.log('Kaynak (Wallet1):', arweave.big.winstonToBIG(sourceBalance), currency);
+        console.log('Hedef (Wallet):', arweave.big.winstonToBIG(targetBalance), currency);
         
         // Transfer işlemi oluştur
         const transaction = await arweave.createTransaction({
             target: targetAddress,
-            quantity: arweave.ar.arToWinston(TRANSFER_AMOUNT)
+            quantity: arweave.big.BIGToWinston(TRANSFER_AMOUNT)
         }, sourceWallet);
         
         // Toplam maliyet hesapla
-        const transferAmountWinston = arweave.ar.arToWinston(TRANSFER_AMOUNT);
+        const transferAmountWinston = arweave.big.BIGToWinston(TRANSFER_AMOUNT);
         const totalCost = Number(transferAmountWinston) + Number(transaction.reward);
         
         console.log('\nTransfer Detayları:');
         console.log('------------------------');
-        console.log('Transfer Miktarı:', TRANSFER_AMOUNT, 'AR');
-        console.log('İşlem Ücreti:', arweave.ar.winstonToAr(transaction.reward), 'AR');
-        console.log('Toplam Maliyet:', arweave.ar.winstonToAr(totalCost), 'AR');
+        console.log('Transfer Miktarı:', TRANSFER_AMOUNT, currency);
+        console.log('İşlem Ücreti:', arweave.big.winstonToBIG(transaction.reward), currency);
+        console.log('Toplam Maliyet:', arweave.big.winstonToBIG(totalCost), currency);
         
         // Bakiye kontrolü
         if (Number(sourceBalance) < totalCost) {
             throw new Error(`Yetersiz bakiye!
-                Gerekli: ${arweave.ar.winstonToAr(totalCost)} AR
-                Mevcut: ${arweave.ar.winstonToAr(sourceBalance)} AR`);
+                Gerekli: ${arweave.big.winstonToBIG(totalCost)} ${currency}
+                Mevcut: ${arweave.big.winstonToBIG(sourceBalance)} ${currency}`);
         }
         
         // Network ve işlem tag'lerini ekle

@@ -17,7 +17,7 @@ async function checkTransaction(txId) {
                 id: transaction.id,
                 owner: transaction.owner,
                 data: transaction.data,
-                reward: arweave.ar.winstonToAr(transaction.reward),
+                reward: arweave.big.winstonToBIG(transaction.reward),
                 tags: transaction.tags
             });
         } catch (txError) {
@@ -30,4 +30,4 @@ async function checkTransaction(txId) {
 }
 
 // Kontrol edilecek işlem ID'sini parametre olarak verin
-checkTransaction('BPv83FxsMlUpYKUP21BwpFb5TPWc21C4Z8cDHo_NROc'); 
+checkTransaction('o_NWon1oWoHMSNJZSyz8kIb0h9vMW8GXayq1O45AHbk'); 

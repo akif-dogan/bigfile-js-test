@@ -16,15 +16,17 @@ async function checkWallet2Balance() {
         console.log('Current Block:', networkInfo.current);
         console.log('Release:', networkInfo.release);
         console.log('Version:', networkInfo.version);
+        console.log('Queue Length:', networkInfo.queue_length);
+        console.log('Node State Latency:', networkInfo.node_state_latency);
         
         // Bakiye kontrolü
         const balance = await arweave.wallets.getBalance(address);
-        const ar = arweave.ar.winstonToAr(balance);
+        const big = arweave.big.winstonToBig(balance);
         
         console.log('\nWallet2 (Mining Wallet) Bilgileri:');
         console.log('------------------------');
         console.log('Adres:', address);
-        console.log('Bakiye (AR):', ar);
+        console.log('Bakiye (BIG):', big);
         console.log('Bakiye (Winston):', balance);
         
         // Son blokları kontrol et
@@ -34,7 +36,10 @@ async function checkWallet2Balance() {
             const lastBlock = await arweave.blocks.get(networkInfo.current);
             console.log('Son Blok Hash:', lastBlock.indep_hash);
             console.log('Miner Address:', lastBlock.reward_addr);
-            console.log('Block Reward:', arweave.ar.winstonToAr(lastBlock.reward), 'AR');
+            console.log('Block Reward:', arweave.big.winstonToBig(lastBlock.reward), 'BIG');
+            console.log('Block Size:', lastBlock.block_size);
+            console.log('Weave Size:', lastBlock.weave_size);
+            console.log('Nonce:', lastBlock.nonce);
             
             // Bu wallet'ın kazandığı blok var mı?
             if (lastBlock.reward_addr === address) {
@@ -51,11 +56,19 @@ async function checkWallet2Balance() {
             const miningAddress = await arweave.blocks.getCurrent();
             console.log('Mining Address:', miningAddress);
             console.log('Wallet2 Mining Aktif:', miningAddress === address);
+            
+            // Mining metrikleri
+            console.log('\nMining Metrikleri:');
+            console.log('------------------------');
+            console.log('Blok Üretim Hızı:', networkInfo.blocks_per_second || 'Hesaplanamadı');
+            console.log('Toplam Blok Sayısı:', networkInfo.height);
+            console.log('Bekleyen İşlem Sayısı:', networkInfo.queue_length);
+            
         } catch (miningError) {
             console.log('Mining durumu alınamadı:', miningError.message);
         }
 
-        // Mining ödül kontrolü ekleyelim
+        // Mining ödül kontrolü
         console.log('\nMining Ödül Kontrolü:');
         console.log('------------------------');
         try {
@@ -66,8 +79,11 @@ async function checkWallet2Balance() {
                 
                 if (block.reward_addr === address) {
                     console.log(`Blok ${blockHeight}:`);
-                    console.log('Ödül:', arweave.ar.winstonToAr(block.reward), 'AR');
-                    console.log('Durum: Onay bekliyor');
+                    console.log('Ödül:', arweave.big.winstonToBig(block.reward), 'BIG');
+                    console.log('Hash:', block.indep_hash);
+                    console.log('Previous Block:', block.previous_block);
+                    console.log('Timestamp:', new Date(block.timestamp * 1000).toLocaleString());
+                    console.log('Durum: Onaylandı');
                 }
             }
         } catch (error) {

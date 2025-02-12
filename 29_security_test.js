@@ -29,7 +29,7 @@ async function securityTest() {
         const newWallet = await arweave.wallets.generate();
         const transferTx = await arweave.createTransaction({
             target: await arweave.wallets.jwkToAddress(newWallet),
-            quantity: arweave.ar.arToWinston('1')
+            quantity: arweave.big.bigToWinston('1')
         }, newWallet);
         
         // Bakiye kontrolü
@@ -53,7 +53,10 @@ async function securityTest() {
         console.log('Veri Bütünlüğü:', originalHash !== modifiedHash ? 'Başarılı' : 'Başarısız');
         
     } catch (error) {
-        console.error('\nHata:', error);
+        console.error('\nGüvenlik Testi Hatası:', error.message);
+        if (error.response) {
+            console.error('Sunucu Yanıtı:', error.response.data);
+        }
     }
 }
 

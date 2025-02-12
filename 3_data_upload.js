@@ -7,12 +7,12 @@ async function uploadData() {
         const wallet = JSON.parse(fs.readFileSync('wallet.json'));
         
         // Test verisi oluştur
-        const testData = 'Arweave Test Verisi';
+        const testData = 'BigFile Test Verisi';
         
         // Önce bakiyeyi kontrol et
         const address = await arweave.wallets.jwkToAddress(wallet);
         const balance = await arweave.wallets.getBalance(address);
-        console.log('Cüzdan Bakiyesi:', arweave.ar.winstonToAr(balance), 'AR');
+        console.log('Cüzdan Bakiyesi:', arweave.big.winstonToBIG(balance), 'BIG');
 
         // Veriyi yükle
         const transaction = await arweave.createTransaction({
@@ -20,7 +20,7 @@ async function uploadData() {
         }, wallet);
 
         // İşlem ücretini görüntüle
-        console.log('İşlem Ücreti:', arweave.ar.winstonToAr(transaction.reward), 'AR');
+        console.log('İşlem Ücreti:', arweave.big.winstonToBIG(transaction.reward), 'BIG');
         
         if (Number(balance) < Number(transaction.reward)) {
             throw new Error('Yetersiz bakiye! Lütfen test token alın.');

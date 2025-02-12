@@ -9,86 +9,73 @@ async function uploadImage(imagePath) {
         console.log('------------------------');
         console.log('Network:', networkInfo.network);
         console.log('Version:', networkInfo.version);
+        console.log('Release:', networkInfo.release);
         console.log('Height:', networkInfo.height);
         console.log('Current Block:', networkInfo.current);
-        console.log('Peers:', networkInfo.peers);
-        
+        console.log('Queue Length:', networkInfo.queue_length);
+        console.log('Node State Latency:', networkInfo.node_state_latency);
+
+        // Cüzdan ve dosya kontrolü
         const wallet = JSON.parse(fs.readFileSync('wallet.json'));
+        const imageData = fs.readFileSync(imagePath);
         const address = await arweave.wallets.jwkToAddress(wallet);
-        
-        // Bakiye kontrolü
         const balance = await arweave.wallets.getBalance(address);
+
         console.log('\nCüzdan Bilgileri:');
         console.log('------------------------');
         console.log('Adres:', address);
-        console.log('Bakiye:', arweave.ar.winstonToAr(balance), 'AR');
-        
-        // Resim verisi
-        const imageData = fs.readFileSync(imagePath);
-        const imageType = imagePath.split('.').pop().toLowerCase();
-        
-        // Transaction oluşturmadan önce data size'a göre ücret hesaplaması
-        const price = await arweave.transactions.getPrice(imageData.byteLength);
-        
+        console.log('Bakiye:', arweave.big.winstonToBIG(balance), 'BIG');
+
+        // İşlem oluştur
+        const transaction = await arweave.createTransaction({
+            data: imageData
+        }, wallet);
+
+        // İşlem detayları
         console.log('\nİşlem Detayları:');
         console.log('------------------------');
-        console.log('Data Boyutu:', imageData.byteLength, 'bytes');
-        console.log('Mevcut Bakiye:', arweave.ar.winstonToAr(balance), 'AR');
-        console.log('Gerekli Ücret:', arweave.ar.winstonToAr(price), 'AR');
-        
-        // Bakiye kontrolü
-        if (Number(balance) < Number(price)) {
-            console.log('\nÖnce wallet1\'den transfer yapılması gerekiyor!');
-            console.log('Lütfen şu komutu çalıştırın: npm run transfer-from-wallet1');
-            process.exit(1);
-        }
-        
-        // Transaction oluştur
-        const transaction = await arweave.createTransaction({
-            data: imageData,
-            reward: price  // Ağın belirlediği ücreti kullan
-        }, wallet);
-        
-        // Transaction detayları
-        console.log('\nTransaction Bilgileri:');
-        console.log('------------------------');
-        console.log('Transaction ID:', transaction.id);
-        console.log('İşlem Ücreti:', arweave.ar.winstonToAr(transaction.reward), 'AR');
-        console.log('Data Size:', transaction.data_size);
-        
+        console.log('Data Boyutu:', transaction.data_size, 'bytes');
+        console.log('Mevcut Bakiye:', arweave.big.winstonToBIG(balance), 'BIG');
+        console.log('Gerekli Ücret:', arweave.big.winstonToBIG(transaction.reward), 'BIG');
+
         // Bakiye kontrolü
         if (Number(balance) < Number(transaction.reward)) {
             throw new Error(`Yetersiz bakiye! 
-                Gerekli: ${arweave.ar.winstonToAr(transaction.reward)} AR
-                Mevcut: ${arweave.ar.winstonToAr(balance)} AR`);
+                Gerekli: ${arweave.big.winstonToBIG(transaction.reward)} BIG
+                Mevcut: ${arweave.big.winstonToBIG(balance)} BIG
+                Lütfen önce cüzdanı fonlayın.`);
         }
-        
-        // Content-Type tag'i ekle
-        transaction.addTag('Content-Type', `image/${imageType}`);
-        
+
+        // Dosya türünü belirle
+        const fileType = imagePath.split('.').pop().toLowerCase();
+        transaction.addTag('Network', 'bigfile.V.1.testnet');
+        transaction.addTag('Content-Type', `image/${fileType}`);
+        transaction.addTag('App-Name', 'BigFileTest');
+        transaction.addTag('Type', 'Image');
+        transaction.addTag('Version', '5');
+        transaction.addTag('Release', '78');
+        transaction.addTag('File-Type', fileType);
+        transaction.addTag('Upload-Date', new Date().toISOString());
+
         // İşlemi imzala
         await arweave.transactions.sign(transaction, wallet);
-        
-        console.log('\nTransaction Detayları:');
+
+        console.log('\nTransaction Bilgileri:');
         console.log('------------------------');
-        console.log('Data Size:', transaction.data_size, 'bytes');
-        console.log('Owner:', transaction.owner.slice(0, 50) + '...');
-        console.log('Reward:', arweave.ar.winstonToAr(transaction.reward), 'AR');
-        
-        // İşlem oluşturulduktan sonra bilgilendirme yapalım
-        console.log('Owner:', transaction.owner.slice(0, 50) + '...');
         console.log('Transaction ID:', transaction.id);
-        
+        console.log('İşlem Ücreti:', arweave.big.winstonToBIG(transaction.reward), 'BIG');
+        console.log('Data Size:', transaction.data_size);
+
         // İşlemi gönder
         console.log('\nİşlem gönderiliyor...');
         const response = await arweave.transactions.post(transaction);
-        
+
         console.log('\nSonuç:');
         console.log('------------------------');
         console.log('TX ID:', transaction.id);
         console.log('Status:', response.status);
         
-        if (response.status === 200) {
+        if (response.status === 200 || response.status === 202) {
             console.log('URL:', `http://65.108.0.39:1984/${transaction.id}`);
             
             // Veriyi chunk chunk yükle
@@ -101,22 +88,41 @@ async function uploadImage(imagePath) {
                 // Her chunk sonrası 1 saniye bekle
                 await new Promise(resolve => setTimeout(resolve, 1000));
             }
+
+            // İşlem durumunu kontrol et
+            let status;
+            let retries = 10;
+            while (retries > 0) {
+                status = await arweave.transactions.getStatus(transaction.id);
+                if (status.status === 200) break;
+                console.log(`İşlem durumu kontrol ediliyor... (${retries} deneme kaldı)`);
+                await new Promise(r => setTimeout(r, 2000));
+                retries--;
+            }
+
+            console.log('\nİşlem durumu:', status.status);
+            if (status.confirmed) {
+                console.log('Blok Yüksekliği:', status.confirmed.block_height);
+                console.log('Onay Sayısı:', status.confirmed.number_of_confirmations);
+            }
         } else {
             console.error('Sunucu Yanıtı:', response.data);
             console.error('\nHata Detayları:');
             console.error('------------------------');
             console.error('Transaction ID:', transaction.id);
             console.error('Data Size:', transaction.data_size);
-            console.error('Reward:', transaction.reward);
+            console.error('Reward:', arweave.big.winstonToBIG(transaction.reward), 'BIG');
+            throw new Error('İşlem başarısız oldu');
         }
         
     } catch (error) {
-        console.error('\nHata:', error);
+        console.error('\nResim Yükleme Hatası:', error.message);
         if (error.response) {
             console.error('Sunucu Yanıtı:', error.response.data);
         }
     }
 }
 
-const imagePath = './test.png';
+// Komut satırından resim yolu al
+const imagePath = process.argv[2] || 'test.png';
 uploadImage(imagePath); 

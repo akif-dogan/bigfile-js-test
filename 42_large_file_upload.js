@@ -2,18 +2,32 @@ const arweave = require('./config.js');
 const fs = require('fs');
 const path = require('path');
 
-async function uploadLargeFile(filePath) {
+async function uploadLargeFile() {
     try {
         console.log('\nBüyük Dosya Yükleme Testi:');
         console.log('------------------------');
+
+        const filePath = './bitcoin.pdf';
 
         // Ana cüzdanı kullan
         const wallet = JSON.parse(fs.readFileSync('wallet.json'));
         const address = await arweave.wallets.jwkToAddress(wallet);
         
+        // Node durumunu kontrol et
+        const networkInfo = await arweave.network.getInfo();
+        console.log('\nNode Durumu:');
+        console.log('------------------------');
+        console.log('Network:', networkInfo.network);
+        console.log('Version:', networkInfo.version);
+        console.log('Release:', networkInfo.release);
+        console.log('Height:', networkInfo.height);
+        console.log('Current Block:', networkInfo.current);
+        console.log('Queue Length:', networkInfo.queue_length);
+        console.log('Node State Latency:', networkInfo.node_state_latency);
+        
         // Bakiye kontrolü
         const balance = await arweave.wallets.getBalance(address);
-        console.log('Cüzdan Bakiyesi:', arweave.ar.winstonToAr(balance), 'AR');
+        console.log('Cüzdan Bakiyesi:', arweave.big.winstonToBIG(balance), 'BIG');
 
         // Dosya bilgilerini al
         const fileStats = fs.statSync(filePath);
@@ -34,19 +48,23 @@ async function uploadLargeFile(filePath) {
         }, wallet);
 
         // Tag'leri ekle
-        transaction.addTag('Network', 'BigFile.V1');
-        transaction.addTag('Content-Type', 'application/octet-stream');
+        transaction.addTag('Network', 'bigfile.V.1.testnet');
+        transaction.addTag('Content-Type', 'application/pdf');
         transaction.addTag('App-Name', 'BigFileTest');
         transaction.addTag('Type', 'LargeFile');
         transaction.addTag('File-Name', fileName);
         transaction.addTag('File-Size', fileSize.toString());
         transaction.addTag('File-Type', fileType);
         transaction.addTag('Upload-Date', new Date().toISOString());
+        transaction.addTag('Version', '5');
+        transaction.addTag('Release', '78');
 
         // İşlem maliyetini hesapla
         console.log('\nMaliyet Bilgileri:');
         console.log('------------------------');
-        console.log('İşlem Ücreti:', arweave.ar.winstonToAr(transaction.reward), 'AR');
+        console.log('İşlem Ücreti:', arweave.big.winstonToBIG(transaction.reward), 'BIG');
+        console.log('Dosya Boyutu:', fileSize, 'bytes');
+        console.log('Chunk Size:', Math.ceil(fileSize / (256 * 1024)), 'chunks');
 
         // Kullanıcı onayı
         console.log('\nDevam etmek istiyor musunuz? (Y/N)');
@@ -87,8 +105,13 @@ async function uploadLargeFile(filePath) {
                 lastPct = pct;
             }
 
-            // Her chunk sonrası küçük bir bekleme
-            await new Promise(r => setTimeout(r, 500));
+            // Her chunk sonrası ağ durumunu kontrol et
+            if (networkInfo.queue_length > 100) {
+                // Eğer işlem kuyruğu çok uzunsa biraz bekle
+                await new Promise(r => setTimeout(r, 2000));
+            } else {
+                await new Promise(r => setTimeout(r, 500));
+            }
         }
 
         console.log('\n\nYükleme tamamlandı!');
@@ -110,7 +133,7 @@ async function uploadLargeFile(filePath) {
         console.log('------------------------');
         console.log('İşlem ID:', transaction.id);
         console.log('Status:', status.status);
-        console.log('URL:', `https://thebigfile.info:1984/${transaction.id}`);
+        console.log('URL:', `http://65.108.0.39:1984/${transaction.id}`);
         
         // İşlem detaylarını kaydet
         const txInfo = {
@@ -118,6 +141,9 @@ async function uploadLargeFile(filePath) {
             fileName,
             fileSize,
             fileType,
+            network: networkInfo.network,
+            version: networkInfo.version,
+            release: networkInfo.release,
             uploadDate: new Date().toISOString(),
             status: status.status
         };
@@ -137,12 +163,4 @@ async function uploadLargeFile(filePath) {
     }
 }
 
-// Dosya yolunu parametre olarak al
-const filePath = process.argv[2];
-if (!filePath) {
-    console.error('Lütfen dosya yolu belirtin:');
-    console.error('npm run upload-large-file <dosya_yolu>');
-    process.exit(1);
-}
-
-uploadLargeFile(filePath); 
+uploadLargeFile(); 

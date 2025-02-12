@@ -6,8 +6,8 @@ async function testTransfer() {
         const wallet = JSON.parse(fs.readFileSync('wallet.json'));
         const targetAddress = 'HEDEF_CUZDAN_ADRESI'; // Test için hedef adres
         
-        // Transfer miktarı (örneğin 0.1 AR)
-        const amount = arweave.ar.arToWinston('0.1');
+        // Transfer miktarı (örneğin 0.1 BIG)
+        const amount = arweave.big.bigToWinston('0.1');
         
         // Transfer işlemi oluştur
         const transaction = await arweave.createTransaction({
@@ -16,8 +16,8 @@ async function testTransfer() {
         }, wallet);
         
         // İşlem ücretini görüntüle
-        console.log('Transfer Miktarı:', arweave.ar.winstonToAr(amount), 'AR');
-        console.log('İşlem Ücreti:', arweave.ar.winstonToAr(transaction.reward), 'AR');
+        console.log('Transfer Miktarı:', arweave.big.winstonToBig(amount), 'BIG');
+        console.log('İşlem Ücreti:', arweave.big.winstonToBig(transaction.reward), 'BIG');
         
         // İşlemi imzala
         await arweave.transactions.sign(transaction, wallet);
